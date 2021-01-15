@@ -13,10 +13,10 @@ router.post('/food', (req, res) => {
     .catch((err) => console.log(err))
 })
 
-router.put('/food/:id',(req,res)=>{
-  Food.findByIdAndUpdate(req.params.id,{$set:req.body})
-  .then(()=? res.sendStatus(200))
-  .catch(err=>console.log(err))
+router.put('/food/:id', (req, res) => {
+  Food.findByIdAndUpdate(req.params.id, { $set: req.body })
+    .then(() => res.sendStatus(200))
+    .catch((err) => console.log(err))
 })
 
 router.delete('/food/:id', (req, res) => {

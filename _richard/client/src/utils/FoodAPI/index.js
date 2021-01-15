@@ -1,1 +1,1 @@
-export { default } from './FoodAPI'
+export { default } from './FoodAPI.js'
