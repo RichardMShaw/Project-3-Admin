@@ -26,7 +26,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 const { createFood } = FoodAPI
-const { createCatagory, getCatagories } = CatagoryAPI
+const { createCatagory, getCatagories, deleteCatagory } = CatagoryAPI
 
 const AddFood = (props) => {
   const classes = useStyles()
@@ -297,6 +297,16 @@ const AddFood = (props) => {
       .catch((err) => console.log(err))
   }
 
+  const handleDeleteCatagory = (id) => {
+    deleteCatagory(id)
+      .then(() => {
+        getCatagories().then(({ data: catagories }) => {
+          setCatagoryAPIState({ catagories: catagories })
+        })
+      })
+      .catch((err) => console.error(err))
+  }
+
   useEffect(() => {
     getCatagories()
       .then(({ data: catagories }) => {
@@ -464,7 +474,19 @@ const AddFood = (props) => {
           Add
         </Button>
         {catagoryAPIState.catagories.map((catagory) => (
-          <Typography>{catagory.name}</Typography>
+          <Card>
+            <CardContent>
+              <Typography>{catagory.name}</Typography>
+              <Button
+                variant="contained"
+                size="small"
+                color="secondary"
+                onClick={() => handleDeleteCatagory(catagory._id)}
+              >
+                Remove
+              </Button>
+            </CardContent>
+          </Card>
         ))}
       </CardContent>
     </Card>
