@@ -4,9 +4,16 @@ module.exports = model(
   'Food',
   new Schema({
     name: String,
-    image: String,
-    price: Number,
+    image: String;
     catagory: String,
+    options: [{
+      name: String,
+      choices: [{
+        name: String,
+        price: Number
+      }]
+    }],
+
     description: String,
   }),
 )

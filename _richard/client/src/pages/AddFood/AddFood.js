@@ -92,22 +92,26 @@ const AddFood = (props) => {
         }
       }
     }
-    if (addFoodState.options.length < 1) {
-      return false
-    }
-    if (addFoodState.options[0].choices.length < 1) {
-      return false
-    }
-    let price = addFoodState.options[0].choices[0].price.trim()
-    if (price === '' || price === '.' || parseFloat(price) <= 0) {
-      return false
+    let options = addFoodState.options
+    let optionsLen = options.length
+    for (let i = 0; i < optionsLen; i++) {
+      if (addFoodState.options[i].name === '') {
+        return false
+      }
+      let choices = options[i].choices
+      let choicesLen = choices.length
+      for (let j = 0; j < choicesLen; j++) {
+        if (choices[j].name === '') {
+          return false
+        }
+      }
     }
     return true
   }
 
   const isAddFoodEnabled = verifyAddFoodState()
 
-  const checkCatagoryState = () => {
+  const verifyCatagoryState = () => {
     let name = addCatagoryState.name
     if (name.length < 1) {
       return false
@@ -122,7 +126,7 @@ const AddFood = (props) => {
     return true
   }
 
-  const isAddCatagoryEnabled = checkCatagoryState()
+  const isAddCatagoryEnabled = verifyCatagoryState()
 
   const renderRemoveOptionButton = (index) => {
     if (index > 0) {
@@ -270,14 +274,16 @@ const AddFood = (props) => {
   const handleCreateFood = (event) => {
     event.preventDefault()
     let food = addFoodState
-    for (let i = 0; i < 1; i++) {
-      for (let j = 0; j < 1 - 1; j++) {
+    let optionsLen = food.options.length
+    for (let i = 0; i < optionsLen; i++) {
+      let choicesLen = food.options[i].choices.length
+      for (let j = 0; j < choicesLen; j++) {
         let price = parseFloat(food.options[i].choices[j].price)
         food.options[i].choices[j].price = isNaN(price) ? 0 : price
       }
       food.options[i].choices.sort((a, b) => (a.price > b.price ? 1 : -1))
     }
-    console.log(food)
+    createFood(food)
     setAddFoodState({ ...emptyState })
   }
 
