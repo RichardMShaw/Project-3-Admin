@@ -6,6 +6,8 @@ import CardContent from '@material-ui/core/CardContent'
 import Button from '@material-ui/core/Button'
 import TextField from '@material-ui/core/TextField'
 import FoodAPI from '../../utils/FoodAPI'
+import CatagoryAPI from '../../utils/CatagoryAPI'
+import { Typography } from '@material-ui/core'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -21,23 +23,54 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-const Project = (props) => {
+const { createFood } = FoodAPI
+const { createCatagory } = CatagoryAPI
+
+const AddFood = (props) => {
   const classes = useStyles()
 
   const emptyState = {
     name: '',
     image: '',
-    price: '',
+    options: [
+      {
+        name: '',
+        choices: [
+          {
+            name: '',
+            price: '',
+          },
+        ],
+      },
+    ],
     catagory: '',
     description: '',
+    lowestCost: '',
+    highestCost: '',
   }
 
   const [addFoodState, setAddFoodState] = useState({
     name: '',
     image: '',
-    price: '',
+    options: [
+      {
+        name: '',
+        choices: [
+          {
+            name: '',
+            price: '',
+          },
+        ],
+      },
+    ],
     catagory: '',
     description: '',
+    lowestCost: '',
+    highestCost: '',
+  })
+
+  const [addCatagoryState, setAddCatagoryState] = useState({
+    name: '',
   })
 
   const checkState = () => {
@@ -51,15 +84,42 @@ const Project = (props) => {
     return true
   }
 
+  const checkCatagoryState = () => {
+    return addCatagoryState.name.length > 0
+  }
+
+  const isAddCatagoryEnabled = checkCatagoryState()
+
   const isEnabled = checkState()
 
-  const { createFood } = FoodAPI
+  const handleChoiceChange = (event, option, choice) => {
+    let newState = addFoodState
+    newState.options[option].choices[choice][event.target.name] =
+      event.target.value
+    setAddFoodState({ ...newState })
+  }
 
-  const handleInputChange = (event) => {
-    setAddFoodState({
-      ...addFoodState,
-      [event.target.name]: event.target.value,
+  const handleAddChoice = (index) => {
+    let newState = addFoodState
+    newState.options[index].choices.push({
+      name: '',
+      choices: [
+        {
+          name: '',
+          price: '',
+        },
+      ],
     })
+    setAddFoodState({ ...newState })
+  }
+
+  const handleChangeCatagory = (event) => {
+    setAddCatagoryState({ ...addCatagoryState, name: event.target.value })
+  }
+
+  const handleCreateCatagory = (event) => {
+    createCatagory(addCatagoryState)
+    setAddCatagoryState({ name: '' })
   }
 
   const handlePriceChange = (event) => {
@@ -85,54 +145,144 @@ const Project = (props) => {
     setAddFoodState({ ...emptyState })
   }
 
+  const handleInputChange = (event) => {
+    setAddFoodState({
+      ...addFoodState,
+      [event.target.name]: event.target.value,
+    })
+  }
   return (
     <Card className={classes.root}>
+      <Typography>Add Food</Typography>
+      <CardContent>
+        <Card>
+          <CardContent>
+            <TextField
+              id="outlined-basic"
+              label="Name"
+              name="name"
+              variant="outlined"
+              onChange={handleInputChange}
+              value={addFoodState.name}
+            />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent>
+            <TextField
+              id="outlined-basic"
+              label="Image"
+              name="image"
+              variant="outlined"
+              onChange={handleInputChange}
+              value={addFoodState.image}
+            />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent>
+            {addFoodState.options.map((option, i) => (
+              <CardContent>
+                <CardContent>
+                  {option.choices.map((choice, j) => (
+                    <Card>
+                      <CardContent>
+                        <TextField
+                          id="outlined-basic"
+                          label="Choice"
+                          name="name"
+                          variant="outlined"
+                          value={addFoodState.options[i].choices[j].name}
+                          onChange={(event) => handleChoiceChange(event, i, j)}
+                        />
+                        <TextField
+                          id="outlined-basic"
+                          label="Price"
+                          name="price"
+                          variant="outlined"
+                          value={addFoodState.options[i].choices[j].price}
+                          onChange={handlePriceChange}
+                        />
+                      </CardContent>
+                    </Card>
+                  ))}
+                  <Button
+                    size="small"
+                    color="primary"
+                    variant="contained"
+                    onClick={() => handleAddChoice(i)}
+                  >
+                    Add Choice
+                  </Button>
+                </CardContent>
+              </CardContent>
+            ))}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent>
+            <TextField
+              id="outlined-basic"
+              label="Price"
+              name="price"
+              variant="outlined"
+              onChange={handlePriceChange}
+              value={addFoodState.price}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent>
+            <TextField
+              id="outlined-basic"
+              label="Catagory"
+              name="catagory"
+              variant="outlined"
+              onChange={handleInputChange}
+              value={addFoodState.catagory}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent>
+            <TextField
+              id="outlined-basic"
+              label="Description"
+              name="description"
+              variant="outlined"
+              onChange={handleInputChange}
+              value={addFoodState.description}
+            />
+          </CardContent>
+        </Card>
+        <Button
+          size="small"
+          color="primary"
+          variant="contained"
+          onClick={handleCreateFood}
+          disabled={true}
+        >
+          Add
+        </Button>
+      </CardContent>
+      <Typography>Add Catagory</Typography>
       <CardContent>
         <TextField
           id="outlined-basic"
           label="Name"
           name="name"
           variant="outlined"
-          onChange={handleInputChange}
-          value={addFoodState.name}
-        />
-        <TextField
-          id="outlined-basic"
-          label="Image"
-          name="image"
-          variant="outlined"
-          onChange={handleInputChange}
-          value={addFoodState.image}
-        />
-        <TextField
-          id="outlined-basic"
-          label="Price"
-          name="price"
-          variant="outlined"
-          onChange={handlePriceChange}
-          value={addFoodState.price}
-        />
-        <TextField
-          id="outlined-basic"
-          label="Catagory"
-          name="catagory"
-          variant="outlined"
-          onChange={handleInputChange}
-          value={addFoodState.catagory}
-        />
-        <TextField
-          id="outlined-basic"
-          label="Description"
-          name="description"
-          variant="outlined"
-          onChange={handleInputChange}
-          value={addFoodState.description}
+          onChange={handleChangeCatagory}
+          value={addCatagoryState.name}
         />
         <Button
+          variant="contained"
           size="small"
           color="primary"
-          onClick={handleCreateFood}
-          disabled={!isEnabled}
+          onClick={handleCreateCatagory}
+          disabled={!isAddCatagoryEnabled}
         >
           Add
         </Button>
@@ -141,4 +291,4 @@ const Project = (props) => {
   )
 }
 
-export default Project
+export default AddFood
