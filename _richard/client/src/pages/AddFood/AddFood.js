@@ -47,8 +47,8 @@ const AddFood = (props) => {
         ],
       },
     ],
-    lowestCost: 0,
-    highestCost: 0,
+    lowestPrice: 0,
+    highestPrice: 0,
   }
 
   const [addFoodState, setAddFoodState] = useState({
@@ -67,8 +67,8 @@ const AddFood = (props) => {
         ],
       },
     ],
-    lowestCost: 0,
-    highestCost: 0,
+    lowestPrice: 0,
+    highestPrice: 0,
   })
 
   const [addCatagoryState, setAddCatagoryState] = useState({
@@ -266,8 +266,8 @@ const AddFood = (props) => {
 
     setAddFoodState({
       ...addFoodState,
-      lowestCost: lowest,
-      highestCost: highest,
+      lowestPrice: lowest,
+      highestPrice: highest,
     })
   }
 
@@ -427,10 +427,10 @@ const AddFood = (props) => {
         <Card>
           <CardContent>
             <Typography>
-              Lowest Cost: ${numberToMoney(addFoodState.lowestCost)}
+              Lowest Cost: ${numberToMoney(addFoodState.lowestPrice)}
             </Typography>
             <Typography>
-              Highest Cost: ${numberToMoney(addFoodState.highestCost)}
+              Highest Cost: ${numberToMoney(addFoodState.highestPrice)}
             </Typography>
           </CardContent>
         </Card>

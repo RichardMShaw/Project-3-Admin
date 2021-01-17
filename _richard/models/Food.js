@@ -6,14 +6,20 @@ module.exports = model(
     name: String,
     image: String,
     catagory: String,
-    options: [{
-      name: String,
-      choices: [{
+    options: [
+      {
         name: String,
-        price: Number
-      }]
-    }],
+        choices: [
+          {
+            name: String,
+            price: Number,
+          },
+        ],
+      },
+    ],
 
     description: String,
+    lowestPrice: Number,
+    highestPrice: Number,
   }),
 )
