@@ -245,23 +245,24 @@ const AddFood = (props) => {
     let options = addFoodState.options
     let optionsLen = options.length
     for (let i = 0; i < optionsLen; i++) {
-      let choices = addFoodState.options[i].choices
+      let choices = options[i].choices
       let choicesLen = choices.length
-      let price = addFoodState.options[i].choices[0].price
-      if (price !== '') {
+      let price = choices[0].price
+      if (price === '' || price === '.') {
+        price = 0
+      } else {
         price = parseFloat(price)
-        let low = price
-        let high = price
-        for (let j = 1; j < choicesLen; j++) {
-          if (price !== '') {
-            price = parseFloat(addFoodState.options[i].choices[j].price)
-            low = low > price ? (low = price) : low
-            high = high < price ? (high = price) : high
-          }
-        }
-        lowest += low
-        highest += high
       }
+
+      let low = price
+      let high = price
+      for (let j = 1; j < choicesLen; j++) {
+        price = parseFloat(choices[j].price)
+        low = low > price ? (low = price) : low
+        high = high < price ? (high = price) : high
+      }
+      lowest += low
+      highest += high
     }
 
     setAddFoodState({
