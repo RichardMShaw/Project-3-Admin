@@ -1,5 +1,5 @@
 import React from 'react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
@@ -7,7 +7,9 @@ import Button from '@material-ui/core/Button'
 import TextField from '@material-ui/core/TextField'
 import FoodAPI from '../../utils/FoodAPI'
 import CatagoryAPI from '../../utils/CatagoryAPI'
-import { Typography } from '@material-ui/core'
+import { InputLabel, MenuItem, Select, Typography } from '@material-ui/core'
+
+import numberToMoney from '../../utils/lib/numberToMoney'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -24,7 +26,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 const { createFood } = FoodAPI
-const { createCatagory } = CatagoryAPI
+const { createCatagory, getCatagories } = CatagoryAPI
 
 const AddFood = (props) => {
   const classes = useStyles()
@@ -32,6 +34,8 @@ const AddFood = (props) => {
   const emptyState = {
     name: '',
     image: '',
+    catagory: '',
+    description: '',
     options: [
       {
         name: '',
@@ -43,15 +47,15 @@ const AddFood = (props) => {
         ],
       },
     ],
-    catagory: '',
-    description: '',
-    lowestCost: '',
-    highestCost: '',
+    lowestCost: 0,
+    highestCost: 0,
   }
 
   const [addFoodState, setAddFoodState] = useState({
     name: '',
     image: '',
+    catagory: '',
+    description: '',
     options: [
       {
         name: '',
@@ -63,39 +67,116 @@ const AddFood = (props) => {
         ],
       },
     ],
-    catagory: '',
-    description: '',
-    lowestCost: '',
-    highestCost: '',
+    lowestCost: 0,
+    highestCost: 0,
   })
 
   const [addCatagoryState, setAddCatagoryState] = useState({
     name: '',
   })
 
-  const checkState = () => {
+  const [catagoryAPIState, setCatagoryAPIState] = useState({
+    catagories: [],
+  })
+
+  const verifyAddFoodState = () => {
     let keys = Object.keys(addFoodState)
     let len = keys.length
     for (let i = 0; i < len; i++) {
-      if (addFoodState[keys[i]].length < 1) {
+      if (
+        typeof addFoodState[keys[i]] != 'number' &&
+        addFoodState[keys[i]].length < 1
+      ) {
+        if (keys[i] !== 'description') {
+          return false
+        }
+      }
+    }
+    if (addFoodState.options.length < 1) {
+      return false
+    }
+    if (addFoodState.options[0].choices.length < 1) {
+      return false
+    }
+    let price = addFoodState.options[0].choices[0].price.trim()
+    if (price === '' || price === '.' || parseFloat(price) <= 0) {
+      return false
+    }
+    return true
+  }
+
+  const isAddFoodEnabled = verifyAddFoodState()
+
+  const checkCatagoryState = () => {
+    let name = addCatagoryState.name
+    if (name.length < 1) {
+      return false
+    }
+    let catagories = catagoryAPIState.catagories
+    let len = catagories.length
+    for (let i = 0; i < len; i++) {
+      if (catagories[i].name === name) {
         return false
       }
     }
     return true
   }
 
-  const checkCatagoryState = () => {
-    return addCatagoryState.name.length > 0
-  }
-
   const isAddCatagoryEnabled = checkCatagoryState()
 
-  const isEnabled = checkState()
+  const renderRemoveOptionButton = (index) => {
+    if (index > 0) {
+      return (
+        <Button
+          size="small"
+          color="secondary"
+          variant="contained"
+          onClick={() => handleRemoveOption(index)}
+        >
+          Remove Option
+        </Button>
+      )
+    }
+  }
 
-  const handleChoiceChange = (event, option, choice) => {
+  const renderRemoveChoiceButton = (option, choice) => {
+    if (choice > 0) {
+      return (
+        <Button
+          size="small"
+          color="secondary"
+          variant="contained"
+          onClick={() => handleRemoveChoice(option, choice)}
+        >
+          Remove Choice
+        </Button>
+      )
+    }
+  }
+
+  const handleAddOption = () => {
     let newState = addFoodState
-    newState.options[option].choices[choice][event.target.name] =
-      event.target.value
+    newState.options.push({
+      name: '',
+      choices: [
+        {
+          name: '',
+          price: '',
+        },
+      ],
+    })
+    setAddFoodState({ ...newState })
+  }
+
+  const handleRemoveOption = (index) => {
+    let newState = addFoodState
+    newState.options.splice(index, 1)
+    setAddFoodState({ ...newState })
+  }
+
+  const handleOptionChange = (event, index) => {
+    let newState = addFoodState
+    newState.options[index][event.target.name] = event.target.value
     setAddFoodState({ ...newState })
   }
 
@@ -113,16 +194,20 @@ const AddFood = (props) => {
     setAddFoodState({ ...newState })
   }
 
-  const handleChangeCatagory = (event) => {
-    setAddCatagoryState({ ...addCatagoryState, name: event.target.value })
+  const handleRemoveChoice = (option, choice) => {
+    let newState = addFoodState
+    newState.options[option].choices.splice(choice, 1)
+    setAddFoodState({ ...newState })
   }
 
-  const handleCreateCatagory = (event) => {
-    createCatagory(addCatagoryState)
-    setAddCatagoryState({ name: '' })
+  const handleChoiceChange = (event, option, choice) => {
+    let newState = addFoodState
+    newState.options[option].choices[choice][event.target.name] =
+      event.target.value
+    setAddFoodState({ ...newState })
   }
 
-  const handlePriceChange = (event) => {
+  const handleChoicePriceChange = (event, option, choice) => {
     event.target.value = event.target.value
       .replace(/[^0-9.]/g, '')
       .replace(/(\..*)\./g, '$1')
@@ -133,16 +218,14 @@ const AddFood = (props) => {
       }
       event.target.value = `${money[0]}.${money[1]}`
     }
-    setAddFoodState({
-      ...addFoodState,
-      [event.target.name]: event.target.value,
-    })
+    let newState = addFoodState
+    newState.options[option].choices[choice].price = event.target.value
+    setAddFoodState({ ...newState })
+    handleLowHighCost()
   }
 
-  const handleCreateFood = (event) => {
-    event.preventDefault()
-    createFood({ ...addFoodState, price: parseFloat(addFoodState.price) })
-    setAddFoodState({ ...emptyState })
+  const handleChangeCatagory = (event) => {
+    setAddCatagoryState({ ...addCatagoryState, name: event.target.value })
   }
 
   const handleInputChange = (event) => {
@@ -151,6 +234,71 @@ const AddFood = (props) => {
       [event.target.name]: event.target.value,
     })
   }
+
+  const handleLowHighCost = () => {
+    let lowest = 0
+    let highest = 0
+    let options = addFoodState.options
+    let optionsLen = options.length
+    for (let i = 0; i < optionsLen; i++) {
+      let choices = addFoodState.options[i].choices
+      let choicesLen = choices.length
+      let price = addFoodState.options[i].choices[0].price
+      if (price !== '') {
+        price = parseFloat(price)
+        let low = price
+        let high = price
+        for (let j = 1; j < choicesLen; j++) {
+          if (price !== '') {
+            price = parseFloat(addFoodState.options[i].choices[j].price)
+            low = low > price ? (low = price) : low
+            high = high < price ? (high = price) : high
+          }
+        }
+        lowest += low
+        highest += high
+      }
+    }
+
+    setAddFoodState({
+      ...addFoodState,
+      lowestCost: lowest,
+      highestCost: highest,
+    })
+  }
+
+  const handleCreateFood = (event) => {
+    event.preventDefault()
+    let food = addFoodState
+    for (let i = 0; i < 1; i++) {
+      for (let j = 0; j < 1 - 1; j++) {
+        let price = parseFloat(food.options[i].choices[j].price)
+        food.options[i].choices[j].price = isNaN(price) ? 0 : price
+      }
+      food.options[i].choices.sort((a, b) => (a.price > b.price ? 1 : -1))
+    }
+    console.log(food)
+    setAddFoodState({ ...emptyState })
+  }
+
+  const handleCreateCatagory = (event) => {
+    createCatagory(addCatagoryState)
+    getCatagories()
+      .then(({ data: catagories }) => {
+        setAddCatagoryState({ name: '' })
+        setCatagoryAPIState({ catagories: catagories })
+      })
+      .catch((err) => console.log(err))
+  }
+
+  useEffect(() => {
+    getCatagories()
+      .then(({ data: catagories }) => {
+        setCatagoryAPIState({ catagories: catagories })
+      })
+      .catch((err) => console.log(err))
+  }, [])
+
   return (
     <Card className={classes.root}>
       <Typography>Add Food</Typography>
@@ -181,9 +329,18 @@ const AddFood = (props) => {
         </Card>
         <Card>
           <CardContent>
+            <Typography>Options</Typography>
             {addFoodState.options.map((option, i) => (
-              <CardContent>
+              <Card>
                 <CardContent>
+                  <TextField
+                    id="outlined-basic"
+                    label="Option"
+                    name="name"
+                    variant="outlined"
+                    value={addFoodState.options[i].name}
+                    onChange={(event) => handleOptionChange(event, i)}
+                  />
                   {option.choices.map((choice, j) => (
                     <Card>
                       <CardContent>
@@ -201,9 +358,12 @@ const AddFood = (props) => {
                           name="price"
                           variant="outlined"
                           value={addFoodState.options[i].choices[j].price}
-                          onChange={handlePriceChange}
+                          onChange={(event) =>
+                            handleChoicePriceChange(event, i, j)
+                          }
                         />
                       </CardContent>
+                      {renderRemoveChoiceButton(i, j)}
                     </Card>
                   ))}
                   <Button
@@ -215,33 +375,34 @@ const AddFood = (props) => {
                     Add Choice
                   </Button>
                 </CardContent>
-              </CardContent>
+                {renderRemoveOptionButton(i)}
+              </Card>
             ))}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent>
-            <TextField
-              id="outlined-basic"
-              label="Price"
-              name="price"
-              variant="outlined"
-              onChange={handlePriceChange}
-              value={addFoodState.price}
-            />
+            <Button
+              size="small"
+              color="primary"
+              variant="contained"
+              onClick={handleAddOption}
+            >
+              Add Option
+            </Button>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent>
-            <TextField
-              id="outlined-basic"
-              label="Catagory"
+            <InputLabel id="catagory-label">Catagory</InputLabel>
+            <Select
+              labelId="catagory-label"
+              id="demo-simple-select"
               name="catagory"
-              variant="outlined"
-              onChange={handleInputChange}
               value={addFoodState.catagory}
-            />
+              onChange={handleInputChange}
+            >
+              {catagoryAPIState.catagories.map((catagory) => (
+                <MenuItem value={catagory.name}>{catagory.name}</MenuItem>
+              ))}
+            </Select>
           </CardContent>
         </Card>
 
@@ -257,14 +418,24 @@ const AddFood = (props) => {
             />
           </CardContent>
         </Card>
+        <Card>
+          <CardContent>
+            <Typography>
+              Lowest Cost: ${numberToMoney(addFoodState.lowestCost)}
+            </Typography>
+            <Typography>
+              Highest Cost: ${numberToMoney(addFoodState.highestCost)}
+            </Typography>
+          </CardContent>
+        </Card>
         <Button
           size="small"
           color="primary"
           variant="contained"
           onClick={handleCreateFood}
-          disabled={true}
+          disabled={!isAddFoodEnabled}
         >
-          Add
+          Add Food To Menu
         </Button>
       </CardContent>
       <Typography>Add Catagory</Typography>
@@ -286,6 +457,9 @@ const AddFood = (props) => {
         >
           Add
         </Button>
+        {catagoryAPIState.catagories.map((catagory) => (
+          <Typography>{catagory.name}</Typography>
+        ))}
       </CardContent>
     </Card>
   )
