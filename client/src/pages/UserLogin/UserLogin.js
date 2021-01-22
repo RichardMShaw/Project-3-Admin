@@ -17,6 +17,7 @@ const UserLogin = () => {
       .post('/api/users/login', loginForm)
       .then((token) => {
         localStorage.setItem('token', JSON.stringify(token))
+        window.location.replace('/')
       })
       .catch((err) => console.error(err))
   }
@@ -38,9 +39,7 @@ const UserLogin = () => {
             onChange={(event) => handleInputChange(event)}
           />
         </CardContent>
-        <Button onClick={() => handleLogin()} href="/">
-          Login
-        </Button>
+        <Button onClick={() => handleLogin()}>Login</Button>
       </Card>
     </form>
   )
